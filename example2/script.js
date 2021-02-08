@@ -12,9 +12,13 @@ const count_slider = document.getElementById( 'count' )
 count_slider.addEventListener( 'input', onSliderChange, false )
 const radius_slider = document.getElementById( 'radius' )
 radius_slider.addEventListener( 'input', onSliderChange, false )
+const proportion_slider = document.getElementById( 'proportion' )
+proportion_slider.addEventListener( 'input', onSliderChange, false )
 
 const downloadButton = document.getElementById("downloadButton")
 downloadButton.onclick = download
+
+const material = new THREE.MeshNormalMaterial({ wireframe: false })
 
 // set up loader for converting the results to threejs
 const loader = new Rhino3dmLoader()
@@ -51,17 +55,21 @@ async function compute() {
     // get slider values
     let count = document.getElementById('count').valueAsNumber
     let radius = document.getElementById('radius').valueAsNumber
+    let proportion = document.getElementById('proportion').valueAsNumber
 
     // format data
     let param1 = new RhinoCompute.Grasshopper.DataTree('RH_IN:radius')
     param1.append([0], [radius])
     let param2 = new RhinoCompute.Grasshopper.DataTree('RH_IN:count')
     param2.append([0], [count])
+    let param3 = new RhinoCompute.Grasshopper.DataTree('RH_IN:proportion')
+    param3.append([0], [count])
 
     // Add all params to an array
     let trees = []
     trees.push(param1)
     trees.push(param2)
+    trees.push(param3)
 
     // Call RhinoCompute
 
@@ -109,6 +117,12 @@ function collectResults(values) {
         scene.add( object )
         // hide spinner
         document.getElementById('loader').style.display = 'none'
+
+        object.traverse(function (child) {
+            if (child.isMesh) {
+                child.material = material
+            }
+        })
 
         // enable download button
         downloadButton.disabled = false
@@ -172,6 +186,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(renderer.domElement)
 
+    
     // add some controls to orbit the camera
     const controls = new OrbitControls(camera, renderer.domElement)
 
@@ -183,6 +198,7 @@ function init() {
     const ambientLight = new THREE.AmbientLight()
     scene.add( ambientLight )
 
+    
 }
 
 // function to continuously render the scene
